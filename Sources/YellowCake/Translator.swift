@@ -8,6 +8,24 @@ public func translate(expression: Expression, instructions: inout [IL.Instructio
         translate(expression: right, instructions: &instructions)
 
         instructions.append(.Add)
+
+    case let .Subtract(left, right):
+        translate(expression: left, instructions: &instructions)
+        translate(expression: right, instructions: &instructions)
+
+        instructions.append(.Sub)
+
+    case let .Multiply(left, right):
+        translate(expression: left, instructions: &instructions)
+        translate(expression: right, instructions: &instructions)
+
+        instructions.append(.Mul)
+
+    case let .Divide(left, right):
+        translate(expression: left, instructions: &instructions)
+        translate(expression: right, instructions: &instructions)
+
+        instructions.append(.Div)
     }
 }
 

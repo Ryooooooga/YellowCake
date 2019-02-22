@@ -13,6 +13,9 @@ public class Lexer {
 
     private static let punctuators: [String] = [
         "+",
+        "-",
+        "*",
+        "/",
         ]
 
     public init(filename: String, source: String) {
@@ -63,6 +66,12 @@ public class Lexer {
     public func read() throws -> Token {
         while let ch = self.restChars.first {
             let startLoc = self.loc
+
+            // Whitespace.
+            if CharacterSet.whitespacesAndNewlines.contains(ch) {
+                _ = self.advance()
+                continue
+            }
 
             // Integer literal.
             if CharacterSet.decimalDigits.contains(ch) {

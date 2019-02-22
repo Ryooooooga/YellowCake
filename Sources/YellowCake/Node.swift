@@ -2,6 +2,9 @@ public class Expression: CustomStringConvertible {
     public enum Kind {
         case Integer(Int)
         case Add(Expression, Expression)
+        case Subtract(Expression, Expression)
+        case Multiply(Expression, Expression)
+        case Divide(Expression, Expression)
     }
 
     public let kind: Kind

@@ -4,6 +4,7 @@ private enum Precedence: Int {
     case Min
     case Additive
     case Multiplicative
+    case Prefix
 }
 
 private extension Precedence {
@@ -85,8 +86,47 @@ public class Parser {
         return Expression(kind: .Add(left, right), location: token.location)
     }
 
+    // SubtractExpr:
+    //  '-' Expr
+    private func parseSubtractExpr(left: Expression) throws -> Expression {
+        // '-'
+        let token = try self.expectToken { $0.isPunctuator("-") }
+
+        // Expr
+        let right = try self.parseExpr(level: .Multiplicative)
+
+        return Expression(kind: .Subtract(left, right), location: token.location)
+    }
+
+    // MultiplyExpr:
+    //  '*' Expr
+    private func parseMultiplyExpr(left: Expression) throws -> Expression {
+        // '*'
+        let token = try self.expectToken { $0.isPunctuator("*") }
+
+        // Expr
+        let right = try self.parseExpr(level: .Prefix)
+
+        return Expression(kind: .Multiply(left, right), location: token.location)
+    }
+
+    // DivideExpr:
+    //  '/' Expr
+    private func parseDivideExpr(left: Expression) throws -> Expression {
+        // '/'
+        let token = try self.expectToken { $0.isPunctuator("/") }
+
+        // Expr
+        let right = try self.parseExpr(level: .Prefix)
+
+        return Expression(kind: .Divide(left, right), location: token.location)
+    }
+
     // InfixExpr:
     //  AddExpr
+    //  SubtractExpr
+    //  MultiplyExpr
+    //  DivideExpr
     //  <empty>
     private func parseInfixExpr(left: Expression, level: Precedence) throws -> Expression {
         var expr = left
@@ -96,6 +136,12 @@ public class Parser {
 
             if prefixToken.isPunctuator("+") && level <= Precedence.Additive {
                 expr = try parseAddExpr(left: expr)
+            } else if prefixToken.isPunctuator("-") && level <= Precedence.Additive {
+                expr = try parseSubtractExpr(left: expr)
+            } else if prefixToken.isPunctuator("*") && level <= Precedence.Multiplicative {
+                expr = try parseMultiplyExpr(left: expr)
+            } else if prefixToken.isPunctuator("/") && level <= Precedence.Multiplicative {
+                expr = try parseDivideExpr(left: expr)
             } else {
                 return expr
             }

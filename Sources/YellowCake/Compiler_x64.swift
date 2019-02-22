@@ -13,6 +13,31 @@ private func compile(instruction: IL.Instruction) {
                 push rax
             """)
 
+    case .Sub:
+        print("""
+                pop rdi
+                pop rax
+                sub rax, rdi
+                push rax
+            """)
+
+    case .Mul:
+        print("""
+                pop rdi
+                pop rax
+                imul rax, rdi
+                push rax
+            """)
+
+    case .Div:
+        print("""
+                pop rdi
+                pop rax
+                cqto
+                idiv rdi
+                push rax
+            """)
+
     case .Return:
         print("""
                 pop rax
