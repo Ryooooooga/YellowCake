@@ -36,6 +36,7 @@ public class Lexer {
         return ch
     }
 
+    // Integer literal.
     private func readIntegerLiteral(startLoc: Location) throws -> Token {
         var text = String()
 
@@ -47,23 +48,24 @@ public class Lexer {
             throw LexicalError.TooLargeIntegerConstant(text: text, at: startLoc)
         }
 
-        return Token(kind: Token.Kind.IntegerLiteral(value: value), text: text, location: startLoc)
+        return Token(kind: .IntegerLiteral(value: value), text: text, location: startLoc)
     }
 
-    public func read() throws -> Token? {
+    public func read() throws -> Token {
         while let ch = self.currentChar {
             let startLoc = self.loc
 
+            // Integer literal.
             if CharacterSet.decimalDigits.contains(ch) {
                 return try self.readIntegerLiteral(startLoc: startLoc)
             }
 
-            // Unexpected character
+            // Unexpected character.
             _ = self.advance()
             throw LexicalError.UnexpectedCharacter(character: ch, at: startLoc)
         }
 
         // End of file.
-        return nil
+        return Token(kind: .EndOfFile, text: "", location: self.loc)
     }
 }
