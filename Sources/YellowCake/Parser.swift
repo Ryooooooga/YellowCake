@@ -66,7 +66,7 @@ public class Parser {
         switch token.kind {
             // IntegerExpr
         case let .IntegerLiteral(value):
-            return Expression(kind: .IntegerExpr(value), location: loc)
+            return Expression(kind: .Integer(value), location: loc)
 
         default:
             throw SyntaxError.UnexpectedToken(token: token, filename: self.filename)

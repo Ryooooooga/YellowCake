@@ -1,6 +1,6 @@
 public class Expression: CustomStringConvertible {
     public enum Kind {
-        case IntegerExpr(Int)
+        case Integer(Int)
         case Add(Expression, Expression)
     }
 

@@ -10,5 +10,6 @@ let input = ProcessInfo.processInfo.arguments[1]
 let l = Lexer(filename: input, source: input)
 let p = Parser(lexer: l)
 let ast = try p.parse()
+let insts = translate(expression: ast)
 
-print(ast)
+print(insts)
