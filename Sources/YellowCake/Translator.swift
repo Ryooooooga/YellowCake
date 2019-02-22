@@ -1,20 +1,22 @@
-public func translateExpr(instructions: inout [IL.Instruction], expression: Expression) {
+public func translate(expression: Expression, instructions: inout [IL.Instruction]) {
     switch expression.kind {
     case let .Integer(value):
         instructions.append(.PushInt(value))
 
     case let .Add(left, right):
-        translateExpr(instructions: &instructions, expression: left)
-        translateExpr(instructions: &instructions, expression: right)
+        translate(expression: left, instructions: &instructions)
+        translate(expression: right, instructions: &instructions)
 
         instructions.append(.Add)
     }
 }
 
-public func translate(expression: Expression) -> [IL.Instruction] {
+public func translate(node: Expression) -> [IL.Instruction] {
     var instructions = [IL.Instruction]()
 
-    translateExpr(instructions: &instructions, expression: expression)
+    translate(expression: node, instructions: &instructions)
+
+    instructions.append(.Return)
 
     return instructions
 }
