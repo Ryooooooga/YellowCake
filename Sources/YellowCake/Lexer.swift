@@ -7,10 +7,13 @@ public class Lexer {
     private var index: String.UnicodeScalarView.Index
     private var loc: Location
 
-    private var currentChar: Unicode.Scalar? {
-        return self.index < self.source.unicodeScalars.endIndex
-            ? self.source.unicodeScalars[self.index] : nil
+    private var restChars: Substring.UnicodeScalarView {
+        return self.source.unicodeScalars[self.index ..< self.source.unicodeScalars.endIndex]
     }
+
+    private static let punctuators: [String] = [
+        "+",
+        ]
 
     public init(filename: String, source: String) {
         self.filename = filename
@@ -21,7 +24,7 @@ public class Lexer {
     }
 
     private func advance() -> Unicode.Scalar? {
-        guard let ch = self.currentChar else {
+        guard let ch = self.restChars.first else {
             return nil
         }
 
@@ -36,11 +39,17 @@ public class Lexer {
         return ch
     }
 
+    private func skipChars(count: Int) {
+        for _ in 1 ... count {
+            _ = self.advance()
+        }
+    }
+
     // Integer literal.
     private func readIntegerLiteral(startLoc: Location) throws -> Token {
         var text = String()
 
-        while let ch = self.currentChar, CharacterSet.decimalDigits.contains(ch) {
+        while let ch = self.restChars.first, CharacterSet.decimalDigits.contains(ch) {
             self.advance()!.write(to: &text)
         }
 
@@ -48,16 +57,25 @@ public class Lexer {
             throw LexicalError.TooLargeIntegerConstant(text: text, at: startLoc)
         }
 
-        return Token(kind: .IntegerLiteral(value: value), text: text, location: startLoc)
+        return Token(kind: .IntegerLiteral(value), text: text, location: startLoc)
     }
 
     public func read() throws -> Token {
-        while let ch = self.currentChar {
+        while let ch = self.restChars.first {
             let startLoc = self.loc
 
             // Integer literal.
             if CharacterSet.decimalDigits.contains(ch) {
                 return try self.readIntegerLiteral(startLoc: startLoc)
+            }
+
+            // Punctuator.
+            for punctuator in Lexer.punctuators {
+                if self.restChars.starts(with: punctuator.unicodeScalars) {
+                    self.skipChars(count: punctuator.unicodeScalars.count)
+
+                    return Token(kind: .Punctuator, text: punctuator, location: startLoc)
+                }
             }
 
             // Unexpected character.

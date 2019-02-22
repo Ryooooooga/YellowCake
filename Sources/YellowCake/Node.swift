@@ -1,6 +1,7 @@
-public class Node: CustomStringConvertible {
+public class Expression: CustomStringConvertible {
     public enum Kind {
-        case IntegerExpr(value: Int)
+        case IntegerExpr(Int)
+        case Add(Expression, Expression)
     }
 
     public let kind: Kind

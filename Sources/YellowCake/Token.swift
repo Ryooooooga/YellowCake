@@ -3,7 +3,8 @@ import Foundation
 public class Token: CustomStringConvertible {
     public enum Kind {
         case EndOfFile
-        case IntegerLiteral(value: Int)
+        case IntegerLiteral(Int)
+        case Punctuator
     }
 
     public let kind: Kind
@@ -22,7 +23,7 @@ public class Token: CustomStringConvertible {
     }
 
     public var integerLiteralValue: Int? {
-        if case .IntegerLiteral(let value) = self.kind {
+        if case let .IntegerLiteral(value) = self.kind {
             return value
         }
         return nil
@@ -32,5 +33,12 @@ public class Token: CustomStringConvertible {
         self.kind = kind
         self.text = text
         self.location = location
+    }
+
+    public func isPunctuator(_ text: String) -> Bool {
+        if case .Punctuator = self.kind, self.text == text {
+            return true
+        }
+        return false
     }
 }
