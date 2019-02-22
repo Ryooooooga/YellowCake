@@ -4,7 +4,7 @@ public class Token: CustomStringConvertible {
     public enum Kind {
         case EndOfFile
         case IntegerLiteral(Int)
-        case Punctuator
+        case Punctuator(String)
     }
 
     public let kind: Kind
@@ -36,8 +36,8 @@ public class Token: CustomStringConvertible {
     }
 
     public func isPunctuator(_ text: String) -> Bool {
-        if case .Punctuator = self.kind, self.text == text {
-            return true
+        if case let .Punctuator(punct) = self.kind {
+            return punct == text
         }
         return false
     }

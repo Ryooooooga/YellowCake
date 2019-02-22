@@ -12,10 +12,8 @@ public class Lexer {
     }
 
     private static let punctuators: [String] = [
-        "+",
-        "-",
-        "*",
-        "/",
+        "+", "-","*","/",
+        "(",")",
         ]
 
     public init(filename: String, source: String) {
@@ -83,7 +81,7 @@ public class Lexer {
                 if self.restChars.starts(with: punctuator.unicodeScalars) {
                     self.skipChars(count: punctuator.unicodeScalars.count)
 
-                    return Token(kind: .Punctuator, text: punctuator, location: startLoc)
+                    return Token(kind: .Punctuator(punctuator), text: punctuator, location: startLoc)
                 }
             }
 

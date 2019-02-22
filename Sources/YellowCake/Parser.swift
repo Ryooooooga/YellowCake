@@ -59,12 +59,20 @@ public class Parser {
     }
 
     // PrefixExpr:
+    //  ParenExpr
     //  IntegerExpr
     private func parsePrefixExpr() throws -> Expression {
         let token = try self.stream.consume()
         let loc = token.location
 
         switch token.kind {
+            // ParenExpr
+        case .Punctuator("("):
+            let expr = try self.parseExpr(level: .Min)
+            _ = try self.expectToken { $0.isPunctuator(")") }
+
+            return expr
+
             // IntegerExpr
         case let .IntegerLiteral(value):
             return Expression(kind: .Integer(value), location: loc)
@@ -132,17 +140,18 @@ public class Parser {
         var expr = left
 
         while true {
-            let prefixToken = try self.stream.peek()
+            let token = try self.stream.peek()
 
-            if prefixToken.isPunctuator("+") && level <= Precedence.Additive {
-                expr = try parseAddExpr(left: expr)
-            } else if prefixToken.isPunctuator("-") && level <= Precedence.Additive {
-                expr = try parseSubtractExpr(left: expr)
-            } else if prefixToken.isPunctuator("*") && level <= Precedence.Multiplicative {
-                expr = try parseMultiplyExpr(left: expr)
-            } else if prefixToken.isPunctuator("/") && level <= Precedence.Multiplicative {
-                expr = try parseDivideExpr(left: expr)
-            } else {
+            switch token.kind {
+            case .Punctuator("+") where level <= Precedence.Additive:
+                expr = try self.parseAddExpr(left: expr)
+            case .Punctuator("-") where level <= Precedence.Additive:
+                expr = try self.parseSubtractExpr(left: expr)
+            case .Punctuator("*") where level <= Precedence.Multiplicative:
+                expr = try self.parseMultiplyExpr(left: expr)
+            case .Punctuator("/") where level <= Precedence.Multiplicative:
+                expr = try self.parseDivideExpr(left: expr)
+            default:
                 return expr
             }
         }
