@@ -54,7 +54,7 @@ public class Parser {
             return token
         }
 
-        throw SyntaxError.UnexpectedToken(token: token)
+        throw SyntaxError.UnexpectedToken(token: token, filename: self.filename)
     }
 
     // PrefixExpr:
@@ -69,7 +69,7 @@ public class Parser {
             return Expression(kind: .IntegerExpr(value), location: loc)
 
         default:
-            throw SyntaxError.UnexpectedToken(token: token)
+            throw SyntaxError.UnexpectedToken(token: token, filename: self.filename)
         }
     }
 

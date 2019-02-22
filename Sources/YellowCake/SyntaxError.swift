@@ -1,3 +1,3 @@
 enum SyntaxError: Error {
-    case UnexpectedToken(token: Token)
+    case UnexpectedToken(token: Token, filename: String)
 }

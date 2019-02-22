@@ -54,7 +54,7 @@ public class Lexer {
         }
 
         guard let value = Int(text) else {
-            throw LexicalError.TooLargeIntegerConstant(text: text, at: startLoc)
+            throw LexicalError.TooLargeIntegerConstant(text: text, filename: self.filename, at: startLoc)
         }
 
         return Token(kind: .IntegerLiteral(value), text: text, location: startLoc)
@@ -80,7 +80,7 @@ public class Lexer {
 
             // Unexpected character.
             _ = self.advance()
-            throw LexicalError.UnexpectedCharacter(character: ch, at: startLoc)
+            throw LexicalError.UnexpectedCharacter(character: ch, filename: self.filename, at: startLoc)
         }
 
         // End of file.
