@@ -33,7 +33,7 @@ private func compile(instruction: IL.Instruction) {
         print("""
                 pop rdi
                 pop rax
-                cqto
+                cqo
                 idiv rdi
                 push rax
             """)
@@ -49,10 +49,16 @@ private func compile(instruction: IL.Instruction) {
 }
 
 public func compile(instructions: [IL.Instruction]) {
+    #if os(macOS)
+    let mainFunc = "_main"
+    #else
+    let mainFunc = "main"
+    #endif
+
     print("""
             .intel_syntax noprefix
-            .global main
-        main:
+            .global \(mainFunc)
+        \(mainFunc):
             push rbp
             mov rbp, rsi
         """)
