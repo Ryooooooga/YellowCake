@@ -8,8 +8,11 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "YellowCake",
+            name: "Akouta",
             dependencies: []),
+        .target(
+            name: "YellowCake",
+            dependencies: ["Akouta"]),
         .testTarget(
             name: "YellowCakeTests",
             dependencies: ["YellowCake"]),
