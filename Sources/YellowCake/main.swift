@@ -12,4 +12,7 @@ let p = Parser(lexer: l)
 let ast = try p.parse()
 let il = translate(node: ast)
 
-compile(instructions: il)
+let insts = compile(instructions: il)
+let function = JITFunction(binary: insts.flatMap { $0.byteCode })
+
+print(function.execute())

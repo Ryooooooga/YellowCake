@@ -1,70 +1,60 @@
-private func compile(instruction: IL.Instruction) {
+public func compile(instruction: IL.Instruction) -> [X64.Instruction] {
     switch instruction {
     case let .PushInt(value):
-        print("""
-                push \(value)
-            """)
+        return [
+            .Push_imm32(UInt32(bitPattern: Int32(value))),
+        ]
 
     case .Add:
-        print("""
-                pop rdi
-                pop rax
-                add rax, rdi
-                push rax
-            """)
+        return [
+            .Pop_r64(.Rdi),
+            .Pop_r64(.Rax),
+            .Add_r64(.Rax, .Rdi),
+            .Push_r64(.Rax),
+        ]
 
     case .Sub:
-        print("""
-                pop rdi
-                pop rax
-                sub rax, rdi
-                push rax
-            """)
+        return [
+            .Pop_r64(.Rdi),
+            .Pop_r64(.Rax),
+            .Sub_r64(.Rax, .Rdi),
+            .Push_r64(.Rax),
+        ]
 
     case .Mul:
-        print("""
-                pop rdi
-                pop rax
-                imul rax, rdi
-                push rax
-            """)
+        return [
+            .Pop_r64(.Rdi),
+            .Pop_r64(.Rax),
+            .IMul_r64(.Rax, .Rdi),
+            .Push_r64(.Rax),
+        ]
 
     case .Div:
-        print("""
-                pop rdi
-                pop rax
-                cqo
-                idiv rdi
-                push rax
-            """)
+        return [
+            .Pop_r64(.Rdi),
+            .Pop_r64(.Rax),
+            .Cqo,
+            .IDiv_r64(.Rdi),
+            .Push_r64(.Rax),
+        ]
 
     case .Return:
-        print("""
-                pop rax
-                mov rsi, rbp
-                pop rbp
-                ret
-            """)
+        return [
+            .Pop_r64(.Rax),
+            .Mov_r64(.Rsp, .Rbp),
+            .Pop_r64(.Rbp),
+            .Ret,
+        ]
     }
 }
 
-public func compile(instructions: [IL.Instruction]) {
-    #if os(macOS)
-    let mainFunc = "_main"
-    #else
-    let mainFunc = "main"
-    #endif
+public func compile(instructions: [IL.Instruction]) -> [X64.Instruction] {
+    let prolog = [X64.Instruction]([
+        .Push_r64(.Rbp),
+        .Mov_r64(.Rbp, .Rsp),
+    ])
 
-    print("""
-            .intel_syntax noprefix
-            .global \(mainFunc)
-        \(mainFunc):
-            push rbp
-            mov rbp, rsi
-        """)
-
-
-    for instruction in instructions {
-        compile(instruction: instruction)
+    return instructions.reduce(into: prolog) {
+        $0 += compile(instruction: $1)
     }
 }
