@@ -67,9 +67,9 @@ public class Parser {
 
         switch token.kind {
             // ParenExpr
-        case .Punctuator("("):
+        case .Symbol("("):
             let expr = try self.parseExpr(level: .Min)
-            _ = try self.expectToken { $0.isPunctuator(")") }
+            _ = try self.expectToken { $0.isSymbol(")") }
 
             return expr
 
@@ -86,7 +86,7 @@ public class Parser {
     //  '+' Expr
     private func parseAddExpr(left: Expression) throws -> Expression {
         // '+'
-        let token = try self.expectToken { $0.isPunctuator("+") }
+        let token = try self.expectToken { $0.isSymbol("+") }
 
         // Expr
         let right = try self.parseExpr(level: .Multiplicative)
@@ -98,7 +98,7 @@ public class Parser {
     //  '-' Expr
     private func parseSubtractExpr(left: Expression) throws -> Expression {
         // '-'
-        let token = try self.expectToken { $0.isPunctuator("-") }
+        let token = try self.expectToken { $0.isSymbol("-") }
 
         // Expr
         let right = try self.parseExpr(level: .Multiplicative)
@@ -110,7 +110,7 @@ public class Parser {
     //  '*' Expr
     private func parseMultiplyExpr(left: Expression) throws -> Expression {
         // '*'
-        let token = try self.expectToken { $0.isPunctuator("*") }
+        let token = try self.expectToken { $0.isSymbol("*") }
 
         // Expr
         let right = try self.parseExpr(level: .Prefix)
@@ -122,7 +122,7 @@ public class Parser {
     //  '/' Expr
     private func parseDivideExpr(left: Expression) throws -> Expression {
         // '/'
-        let token = try self.expectToken { $0.isPunctuator("/") }
+        let token = try self.expectToken { $0.isSymbol("/") }
 
         // Expr
         let right = try self.parseExpr(level: .Prefix)
@@ -143,13 +143,13 @@ public class Parser {
             let token = try self.stream.peek()
 
             switch token.kind {
-            case .Punctuator("+") where level <= Precedence.Additive:
+            case .Symbol("+") where level <= Precedence.Additive:
                 expr = try self.parseAddExpr(left: expr)
-            case .Punctuator("-") where level <= Precedence.Additive:
+            case .Symbol("-") where level <= Precedence.Additive:
                 expr = try self.parseSubtractExpr(left: expr)
-            case .Punctuator("*") where level <= Precedence.Multiplicative:
+            case .Symbol("*") where level <= Precedence.Multiplicative:
                 expr = try self.parseMultiplyExpr(left: expr)
-            case .Punctuator("/") where level <= Precedence.Multiplicative:
+            case .Symbol("/") where level <= Precedence.Multiplicative:
                 expr = try self.parseDivideExpr(left: expr)
             default:
                 return expr
@@ -167,15 +167,44 @@ public class Parser {
         return try parseInfixExpr(left: expr, level: level)
     }
 
-    // Program:
-    //  Expr EOF
-    public func parse() throws -> Expression {
-        // Expr
+    // ReturnStmt:
+    //  'return' expr ';'
+    private func parseReturnStmt() throws -> Statement {
+        // 'return'
+        let token = try self.expectToken { $0.isSymbol("return") }
+
+        // expr
         let expr = try self.parseExpr(level: .Min)
+
+        // ';'
+        _ = try self.expectToken { $0.isSymbol(";") }
+
+        return Statement(kind: .Return(expr), location: token.location)
+    }
+
+    // Stmt:
+    //  ReturnStmt
+    private func parseStmt() throws -> Statement {
+        let token = try self.stream.peek()
+
+        switch token.kind {
+        case .Symbol("return"):
+            return try self.parseReturnStmt()
+
+        default:
+            throw SyntaxError.UnexpectedToken(token: token, filename: self.filename)
+        }
+    }
+
+    // Program:
+    //  Stmt EOF
+    public func parse() throws -> Statement {
+        // Stmt
+        let stmt = try self.parseStmt()
 
         // EOF
         _ = try self.expectToken { $0.isEOF }
 
-        return expr
+        return stmt
     }
 }

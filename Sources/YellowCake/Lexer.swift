@@ -1,5 +1,19 @@
 import Foundation
 
+private extension Unicode.Scalar {
+    var isDigit: Bool {
+        return "0" <= self && self <= "9"
+    }
+
+    var isIdentifierStart: Bool {
+        return ("A" <= self && self <= "Z") || ("a" <= self && self <= "z") || (self == "_")
+    }
+
+    var isIdentifierContinuation: Bool {
+        return self.isIdentifierStart || self.isDigit
+    }
+}
+
 public class Lexer {
     public let filename: String
     public let source: String
@@ -11,10 +25,15 @@ public class Lexer {
         return self.source.unicodeScalars[self.index ..< self.source.unicodeScalars.endIndex]
     }
 
+    private static let keywords: [String] = [
+        "return",
+    ]
+
     private static let punctuators: [String] = [
         "+", "-","*","/",
         "(",")",
-        ]
+        ";",
+    ]
 
     public init(filename: String, source: String) {
         self.filename = filename
@@ -46,11 +65,24 @@ public class Lexer {
         }
     }
 
+    // Identifier.
+    private func readIdentifier(startLoc: Location) throws -> Token {
+        var text = String()
+
+        while let ch = self.restChars.first, ch.isIdentifierContinuation {
+            self.advance()!.write(to: &text)
+        }
+
+        let kind: Token.Kind = Lexer.keywords.contains(text) ? .Symbol(text) : .Identifier(text)
+
+        return Token(kind: kind, text: text, location: startLoc)
+    }
+
     // Integer literal.
     private func readIntegerLiteral(startLoc: Location) throws -> Token {
         var text = String()
 
-        while let ch = self.restChars.first, CharacterSet.decimalDigits.contains(ch) {
+        while let ch = self.restChars.first, ch.isDigit {
             self.advance()!.write(to: &text)
         }
 
@@ -71,17 +103,22 @@ public class Lexer {
                 continue
             }
 
+            // Identifier.
+            if ch.isIdentifierStart {
+                return try self.readIdentifier(startLoc: startLoc)
+            }
+
             // Integer literal.
-            if CharacterSet.decimalDigits.contains(ch) {
+            if ch.isDigit {
                 return try self.readIntegerLiteral(startLoc: startLoc)
             }
 
             // Punctuator.
-            for punctuator in Lexer.punctuators {
-                if self.restChars.starts(with: punctuator.unicodeScalars) {
-                    self.skipChars(count: punctuator.unicodeScalars.count)
+            for punct in Lexer.punctuators {
+                if self.restChars.starts(with: punct.unicodeScalars) {
+                    self.skipChars(count: punct.unicodeScalars.count)
 
-                    return Token(kind: .Punctuator(punctuator), text: punctuator, location: startLoc)
+                    return Token(kind: .Symbol(punct), text: punct, location: startLoc)
                 }
             }
 

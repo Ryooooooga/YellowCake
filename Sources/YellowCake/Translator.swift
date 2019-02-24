@@ -29,12 +29,19 @@ public func translate(expression: Expression, instructions: inout [IL.Instructio
     }
 }
 
-public func translate(node: Expression) -> [IL.Instruction] {
+public func translate(statement: Statement, instructions: inout [IL.Instruction]) {
+    switch statement.kind {
+    case let .Return(expr):
+        translate(expression: expr, instructions: &instructions)
+
+        instructions.append(.Return)
+    }
+}
+
+public func translate(node: Statement) -> [IL.Instruction] {
     var instructions = [IL.Instruction]()
 
-    translate(expression: node, instructions: &instructions)
-
-    instructions.append(.Return)
+    translate(statement: node, instructions: &instructions)
 
     return instructions
 }
