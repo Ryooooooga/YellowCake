@@ -36,6 +36,24 @@ public func translate(statement: Statement, instructions: inout [IL.Instruction]
             translate(statement: stmt, instructions: &instructions)
         }
 
+    case let .If(cond, then, else_):
+        let elseLabel = IL.Label()
+        let endLabel = IL.Label()
+
+        translate(expression: cond, instructions: &instructions)
+        instructions.append(.BranchIfNot(elseLabel))
+
+        translate(statement: then, instructions: &instructions)
+        instructions.append(.Jump(endLabel))
+
+        instructions.append(.Label(elseLabel))
+
+        if let else_ = else_ {
+            translate(statement: else_, instructions: &instructions)
+        }
+
+        instructions.append(.Label(endLabel))
+
     case let .Return(expr):
         translate(expression: expr, instructions: &instructions)
 

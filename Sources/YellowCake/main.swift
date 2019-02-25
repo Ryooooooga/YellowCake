@@ -13,6 +13,6 @@ let ast = try p.parse()
 let il = translate(node: ast)
 
 let insts = compile(instructions: il)
-let function = JITFunction(binary: insts.flatMap { $0.byteCode })
+let function = JITFunction(binary: try codegen(instructions: insts))
 
 print(function.execute())

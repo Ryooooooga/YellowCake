@@ -1,6 +1,7 @@
 public class Statement: CustomStringConvertible {
     public enum Kind {
         case Compound([Statement])
+        case If(Expression, Statement, Statement?)
         case Return(Expression)
         case Expression(Expression)
     }

@@ -43,6 +43,23 @@ public func compile(instruction: IL.Instruction) -> [X64.Instruction] {
             .Push_r64(.Rax),
         ]
 
+    case let .Label(label):
+        return [
+            .Label(label),
+        ]
+
+    case let .Jump(label):
+        return [
+            .Jmp(label),
+        ]
+
+    case let .BranchIfNot(label):
+        return [
+            .Pop_r64(.Rax),
+            .Cmp_r64_imm32(.Rax, 0),
+            .Jz(label),
+        ]
+
     case .Return:
         return [
             .Pop_r64(.Rax),

@@ -32,9 +32,13 @@ public class X64 {
         case Mov_r64(Register64, Register64)
         case Add_r64(Register64, Register64)
         case Sub_r64(Register64, Register64)
+        case Cmp_r64_imm32(Register64, UInt32)
         case IMul_r64(Register64, Register64)
         case IDiv_r64(Register64)
         case Cqo
+        case Label(IL.Label)
+        case Jmp(IL.Label)
+        case Jz(IL.Label)
         case Ret
 
         public var description: String {
@@ -45,53 +49,15 @@ public class X64 {
             case let .Mov_r64(r1, r2): return "mov \(r1), \(r2)"
             case let .Add_r64(r1, r2): return "add \(r1), \(r2)"
             case let .Sub_r64(r1, r2): return "sub \(r1), \(r2)"
+            case let .Cmp_r64_imm32(r, x): return "cmp \(r), \(x)"
             case let .IMul_r64(r1, r2): return "imul \(r1), \(r2)"
             case let .IDiv_r64(r): return "idiv \(r)"
             case .Cqo: return "cqo"
+            case let .Label(label): return ".L\(label.id):"
+            case let .Jmp(label): return "jmp .L\(label.id)"
+            case let .Jz(label): return "jz .L\(label.id)"
             case .Ret: return "ret"
             }
-        }
-    }
-}
-
-extension X64.Instruction {
-    public var byteCode: [UInt8] {
-        switch self {
-        case let .Push_imm32(x):
-            return [
-                0x68,
-                UInt8((x >> 0) & 0xff),
-                UInt8((x >> 8) & 0xff),
-                UInt8((x >> 16) & 0xff),
-                UInt8((x >> 24) & 0xff),
-            ]
-
-        case let .Push_r64(r):
-            return [0x50 | r.rawValue] // TODO: r8~
-
-        case let .Pop_r64(r):
-            return [0x58 | r.rawValue] // TODO: r8~
-
-        case let .Mov_r64(r1, r2):
-            return [0x48, 0x89, 0xc0 | (r2.rawValue << 3) | r1.rawValue] // TODO: r8~
-
-        case let .Add_r64(r1, r2):
-            return [0x48, 0x01, 0xc0 | (r2.rawValue << 3) | r1.rawValue] // TODO: r8~
-
-        case let .Sub_r64(r1, r2):
-            return [0x48, 0x29, 0xc0 | (r2.rawValue << 3) | r1.rawValue] // TODO: r8~
-
-        case let .IMul_r64(r1, r2):
-            return [0x48, 0x0f, 0xaf, 0xc0 | (r1.rawValue << 3) | r2.rawValue] // TODO: r8~
-
-        case let .IDiv_r64(r):
-            return [0x48, 0xf7, 0xf8 | r.rawValue] // TODO: r8~
-
-        case .Cqo:
-            return [0x48, 0x99]
-
-        case .Ret:
-            return [0xc3]
         }
     }
 }

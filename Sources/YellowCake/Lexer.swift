@@ -26,6 +26,7 @@ public class Lexer {
     }
 
     private static let keywords: [String] = [
+        "if", "else",
         "return",
     ]
 

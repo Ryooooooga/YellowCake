@@ -186,13 +186,37 @@ public class Parser {
         return Statement(kind: .Compound(stmts), location: token.location)
     }
 
+    // IfStmt:
+    //  'if' Expr CompoundStmt 'else' CompoundStmt
+    //  'if' Expr CompoundStmt
+    private func parseIfStmt() throws -> Statement {
+        // 'if'
+        let token = try self.expectToken { $0.isSymbol("if") }
+
+        // Expr
+        let condition = try self.parseExpr(level: .Min)
+
+        // CompoundStmt
+        let then = try self.parseCompoundStmt()
+
+        // ['else']
+        guard let _ = try self.stream.consume(if: { $0.isSymbol("else") }) else {
+            return Statement(kind: .If(condition, then, nil), location: token.location)
+        }
+
+        // CompoundStmt
+        let else_ = try self.parseCompoundStmt()
+
+        return Statement(kind: .If(condition, then, else_), location: token.location)
+    }
+
     // ReturnStmt:
-    //  'return' expr ';'
+    //  'return' Expr ';'
     private func parseReturnStmt() throws -> Statement {
         // 'return'
         let token = try self.expectToken { $0.isSymbol("return") }
 
-        // expr
+        // Expr
         let expr = try self.parseExpr(level: .Min)
 
         // ';'
@@ -215,6 +239,7 @@ public class Parser {
 
     // Stmt:
     //  CompoundStmt
+    //  IfStmt
     //  ReturnStmt
     //  ExprStmt
     private func parseStmt() throws -> Statement {
@@ -223,6 +248,9 @@ public class Parser {
         switch token.kind {
         case .Symbol("{"):
             return try self.parseCompoundStmt()
+
+        case .Symbol("if"):
+            return try self.parseIfStmt()
 
         case .Symbol("return"):
             return try self.parseReturnStmt()
