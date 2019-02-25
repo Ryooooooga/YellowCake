@@ -31,6 +31,7 @@ public class X64 {
         case Pop_r64(Register64)
         case Mov_addr_rel32_r64(Register64, Int32, Register64)
         case Mov_r64_r64(Register64, Register64)
+        case Mov_r64_addr_rel32(Register64, Register64, Int32)
         case Add_r64_r64(Register64, Register64)
         case Sub_r64_r64(Register64, Register64)
         case Sub_r64_imm32(Register64, Int32)
@@ -50,6 +51,7 @@ public class X64 {
             case let .Pop_r64(r): return "pop \(r)"
             case let .Mov_addr_rel32_r64(r1, x, r2): return "mov [\(r1)\(x < 0 ? "" : "+")\(x)], \(r2)"
             case let .Mov_r64_r64(r1, r2): return "mov \(r1), \(r2)"
+            case let .Mov_r64_addr_rel32(r1, r2, x): return "mov \(r1), [\(r2)\(x < 0 ? "" : "+")\(x)]"
             case let .Add_r64_r64(r1, r2): return "add \(r1), \(r2)"
             case let .Sub_r64_r64(r1, r2): return "sub \(r1), \(r2)"
             case let .Sub_r64_imm32(r, x): return "sub \(r), \(x)"

@@ -58,6 +58,10 @@ public func codegen(instructions: [X64.Instruction]) throws -> [UInt8] {
         case let .Mov_r64_r64(r1, r2):
             binary += [0x48, 0x89, 0xc0 | (r2.rawValue << 3) | r1.rawValue] // TODO: r8~
 
+        case let .Mov_r64_addr_rel32(r1, r2, x):
+            binary += [0x48, 0x8b, 0x80 | (r1.rawValue << 3) | r2.rawValue] // TODO: r8~
+            binary += x.toByteArray()
+
         case let .Add_r64_r64(r1, r2):
             binary += [0x48, 0x01, 0xc0 | (r2.rawValue << 3) | r1.rawValue] // TODO: r8~
 

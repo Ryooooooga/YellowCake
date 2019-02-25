@@ -61,21 +61,28 @@ public class Parser {
     // PrefixExpr:
     //  ParenExpr
     //  IntegerExpr
+    //  IdentifierExpr
     private func parsePrefixExpr() throws -> Expression {
         let token = try self.stream.consume()
         let loc = token.location
 
         switch token.kind {
-            // ParenExpr
         case .Symbol("("):
+            // ParenExpr
             let expr = try self.parseExpr(level: .Min)
             _ = try self.expectToken { $0.isSymbol(")") }
 
             return expr
 
-            // IntegerExpr
         case let .IntegerLiteral(value):
+            // IntegerExpr
             return Expression(kind: .Integer(value), location: loc)
+
+        case let .Identifier(name):
+            // IdentifierExpr
+            let attr = IdentifierExpressionAttribute(name: name)
+
+            return Expression(kind: .Identifier(attr), location: loc)
 
         default:
             throw SyntaxError.UnexpectedToken(token: token, filename: self.filename)

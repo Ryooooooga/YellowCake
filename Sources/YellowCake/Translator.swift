@@ -3,6 +3,9 @@ public func translate(expression: Expression, instructions: inout [IL.Instructio
     case let .Integer(value):
         instructions.append(.PushInt(value))
 
+    case let .Identifier(attr):
+        instructions.append(.Load(attr.symbol!))
+
     case let .Add(left, right):
         translate(expression: left, instructions: &instructions)
         translate(expression: right, instructions: &instructions)

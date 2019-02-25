@@ -1,5 +1,6 @@
 public class IL {
     public enum Instruction {
+        case Load(VariableSymbol)
         case Store(VariableSymbol)
         case PushInt(Int)
         case Drop

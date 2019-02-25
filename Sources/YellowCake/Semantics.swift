@@ -2,12 +2,20 @@ import Foundation
 
 public enum SemanticError: Error {
     case MultipleDeclaration(VariableSymbol)
+    case UndeclaredIdentifier(String, Location)
 }
 
 private func semanticAnalyze(expression: Expression, scope: Scope) throws {
     switch expression.kind {
         case .Integer(_):
             break
+
+        case let .Identifier(attr):
+            guard let symbol = scope.findSymbol(name: attr.name, recursive: true) else {
+                throw SemanticError.UndeclaredIdentifier(attr.name, expression.location)
+            }
+
+            attr.symbol = symbol
 
         case let .Add(left, right):
             try semanticAnalyze(expression: left, scope: scope)
@@ -54,6 +62,8 @@ private func semanticAnalyze(statement: Statement, scope: Scope) throws {
             throw SemanticError.MultipleDeclaration(symbol)
         }
 
+        symbol.type = Type.int64
+
     case let .Expression(expr):
         try semanticAnalyze(expression: expr, scope: scope)
     }
@@ -63,6 +73,7 @@ private func semanticAnalyze(declaration: Declaration, scope: Scope) throws {
     switch declaration.kind {
     case let .Function(attr):
         attr.scope = Scope(parent: scope)
+        attr.symbol.type = Type(kind: .Function)
 
         try semanticAnalyze(statement: attr.body, scope: attr.scope!)
     }

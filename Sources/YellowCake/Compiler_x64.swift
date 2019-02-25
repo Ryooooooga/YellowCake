@@ -1,5 +1,13 @@
 public func compile(instruction: IL.Instruction, locals: [VariableSymbol: Int32]) -> [X64.Instruction] {
     switch instruction {
+    case let .Load(symbol):
+        let pos = locals[symbol]!
+
+        return [
+            .Mov_r64_addr_rel32(.Rax, .Rbp, pos),
+            .Push_r64(.Rax),
+        ]
+
     case let .Store(symbol):
         let pos = locals[symbol]!
 

@@ -1,8 +1,38 @@
 import Foundation
 
+public class Type {
+    public enum Kind {
+        case Int64
+        case Function
+    }
+
+    public let kind: Kind
+
+    public var isInt64: Bool {
+        if case .Int64 = self.kind {
+            return true
+        }
+        return false
+    }
+
+    public var isFunction: Bool {
+        if case .Function = self.kind {
+            return true
+        }
+        return false
+    }
+
+    public static let int64: Type = Type(kind: .Int64)
+
+    public init(kind: Kind) {
+        self.kind = kind
+    }
+}
+
 public class VariableSymbol: Hashable {
     public let name: String
     public let location: Location
+    public var type: Type?
 
     public var hashValue: Int {
         return ObjectIdentifier(self).hashValue
@@ -11,6 +41,7 @@ public class VariableSymbol: Hashable {
     public init(name: String, location: Location) {
         self.name = name
         self.location = location
+        self.type =  nil
     }
 
     public static func == (lhs: VariableSymbol, rhs: VariableSymbol) -> Bool {
@@ -126,9 +157,21 @@ public class Statement: CustomStringConvertible {
     }
 }
 
+public class IdentifierExpressionAttribute {
+    public let name: String
+
+    internal var symbol: VariableSymbol?
+
+    public init(name: String) {
+        self.name = name
+        self.symbol = nil
+    }
+}
+
 public class Expression: CustomStringConvertible {
     public enum Kind {
         case Integer(Int)
+        case Identifier(IdentifierExpressionAttribute)
         case Add(Expression, Expression)
         case Subtract(Expression, Expression)
         case Multiply(Expression, Expression)
