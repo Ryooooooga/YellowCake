@@ -11,15 +11,15 @@ public class VariableSymbol {
 public class Scope {
     public weak var parent: Scope?
 
-    private var symbols: [String: VariableSymbol]
+    private var symbols: [VariableSymbol]
 
     public init(parent: Scope?) {
         self.parent = parent
-        self.symbols = [:]
+        self.symbols = []
     }
 
     public func findSymbol(name: String, recursive: Bool) -> VariableSymbol? {
-        if let symbol = self.symbols[name] {
+        if let symbol = self.symbols.first(where: { $0.name == name }) {
             return symbol
         }
 
@@ -31,11 +31,11 @@ public class Scope {
     }
 
     public func register(symbol: VariableSymbol) -> Bool {
-        if let _ = self.symbols[symbol.name] {
+        if let _ = self.findSymbol(name: symbol.name, recursive: false) {
             return false
         }
 
-        self.symbols[symbol.name] = symbol
+        self.symbols.append(symbol)
         return true
     }
 }
