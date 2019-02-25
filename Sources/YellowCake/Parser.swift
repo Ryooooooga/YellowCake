@@ -201,9 +201,22 @@ public class Parser {
         return Statement(kind: .Return(expr), location: token.location)
     }
 
+    // ExprStmt:
+    //  Expr ';'
+    private func parseExprStmt() throws -> Statement {
+        // Expr
+        let expr = try self.parseExpr(level: .Min)
+
+        // ';'
+        let token = try self.expectToken { $0.isSymbol(";") }
+
+        return Statement(kind: .Expression(expr), location: token.location)
+    }
+
     // Stmt:
     //  CompoundStmt
     //  ReturnStmt
+    //  ExprStmt
     private func parseStmt() throws -> Statement {
         let token = try self.stream.peek()
 
@@ -215,7 +228,7 @@ public class Parser {
             return try self.parseReturnStmt()
 
         default:
-            throw SyntaxError.UnexpectedToken(token: token, filename: self.filename)
+            return try self.parseExprStmt()
         }
     }
 

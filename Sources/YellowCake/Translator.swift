@@ -40,6 +40,11 @@ public func translate(statement: Statement, instructions: inout [IL.Instruction]
         translate(expression: expr, instructions: &instructions)
 
         instructions.append(.Return)
+
+    case let .Expression(expr):
+        translate(expression: expr, instructions: &instructions)
+
+        instructions.append(.Drop)
     }
 }
 
@@ -47,6 +52,9 @@ public func translate(node: Statement) -> [IL.Instruction] {
     var instructions = [IL.Instruction]()
 
     translate(statement: node, instructions: &instructions)
+
+    instructions.append(.PushInt(0))
+    instructions.append(.Return)
 
     return instructions
 }

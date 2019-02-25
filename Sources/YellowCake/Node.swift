@@ -2,6 +2,7 @@ public class Statement: CustomStringConvertible {
     public enum Kind {
         case Compound([Statement])
         case Return(Expression)
+        case Expression(Expression)
     }
 
     public let kind: Kind

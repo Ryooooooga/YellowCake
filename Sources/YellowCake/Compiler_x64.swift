@@ -5,6 +5,11 @@ public func compile(instruction: IL.Instruction) -> [X64.Instruction] {
             .Push_imm32(UInt32(bitPattern: Int32(value))),
         ]
 
+    case .Drop:
+        return [
+            .Pop_r64(.Rax)
+        ]
+
     case .Add:
         return [
             .Pop_r64(.Rdi),
