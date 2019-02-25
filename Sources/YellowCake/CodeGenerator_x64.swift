@@ -1,12 +1,14 @@
 import Foundation
 
-private extension UInt32 {
+private extension Int32 {
     func toByteArray() -> [UInt8] {
+        let x = UInt32(bitPattern: self)
+
         return [
-            UInt8((self >> 0) & 0xff),
-            UInt8((self >> 8) & 0xff),
-            UInt8((self >> 16) & 0xff),
-            UInt8((self >> 24) & 0xff),
+            UInt8((x >> 0) & 0xff),
+            UInt8((x >> 8) & 0xff),
+            UInt8((x >> 16) & 0xff),
+            UInt8((x >> 24) & 0xff),
         ]
     }
 }
@@ -49,20 +51,28 @@ public func codegen(instructions: [X64.Instruction]) throws -> [UInt8] {
         case let .Pop_r64(r):
             binary += [0x58 | r.rawValue] // TODO: r8~
 
-        case let .Mov_r64(r1, r2):
+        case let .Mov_addr_rel32_r64(r1, x, r2):
+            binary += [0x48, 0x89, 0x80 | (r2.rawValue << 3) | r1.rawValue] // TODO: r8~
+            binary += x.toByteArray()
+
+        case let .Mov_r64_r64(r1, r2):
             binary += [0x48, 0x89, 0xc0 | (r2.rawValue << 3) | r1.rawValue] // TODO: r8~
 
-        case let .Add_r64(r1, r2):
+        case let .Add_r64_r64(r1, r2):
             binary += [0x48, 0x01, 0xc0 | (r2.rawValue << 3) | r1.rawValue] // TODO: r8~
 
-        case let .Sub_r64(r1, r2):
+        case let .Sub_r64_r64(r1, r2):
             binary += [0x48, 0x29, 0xc0 | (r2.rawValue << 3) | r1.rawValue] // TODO: r8~
+
+        case let .Sub_r64_imm32(r, x):
+            binary += [0x48, 0x81, 0xe8 | r.rawValue] // TODO: r8~
+            binary += x.toByteArray()
 
         case let .Cmp_r64_imm32(r, x):
             binary += [0x48, 0x81, 0xf8 | r.rawValue] // TODO: r8~
             binary += x.toByteArray()
 
-        case let .IMul_r64(r1, r2):
+        case let .IMul_r64_r64(r1, r2):
             binary += [0x48, 0x0f, 0xaf, 0xc0 | (r1.rawValue << 3) | r2.rawValue] // TODO: r8~
 
         case let .IDiv_r64(r):
@@ -103,12 +113,12 @@ public func codegen(instructions: [X64.Instruction]) throws -> [UInt8] {
         }
 
         for ref in entry.refs {
-            let diff = UInt32(bitPattern: Int32(pos - ref))
+            let diff = Int32(pos - ref).toByteArray()
 
-            binary[ref - 4] = UInt8((diff >> 0) & 0xff)
-            binary[ref - 3] = UInt8((diff >> 8) & 0xff)
-            binary[ref - 2] = UInt8((diff >> 16) & 0xff)
-            binary[ref - 1] = UInt8((diff >> 24) & 0xff)
+            binary[ref - 4] = diff[0]
+            binary[ref - 3] = diff[1]
+            binary[ref - 2] = diff[2]
+            binary[ref - 1] = diff[3]
         }
     }
 

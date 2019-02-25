@@ -1,11 +1,16 @@
-public func compile(instruction: IL.Instruction) -> [X64.Instruction] {
+public func compile(instruction: IL.Instruction, locals: [VariableSymbol: Int32]) -> [X64.Instruction] {
     switch instruction {
-    case let .Store(_):
-        assert(false)
+    case let .Store(symbol):
+        let pos = locals[symbol]!
+
+        return [
+            .Pop_r64(.Rax),
+            .Mov_addr_rel32_r64(.Rbp, pos, .Rax)
+        ]
 
     case let .PushInt(value):
         return [
-            .Push_imm32(UInt32(bitPattern: Int32(value))),
+            .Push_imm32(Int32(value)),
         ]
 
     case .Drop:
@@ -17,7 +22,7 @@ public func compile(instruction: IL.Instruction) -> [X64.Instruction] {
         return [
             .Pop_r64(.Rdi),
             .Pop_r64(.Rax),
-            .Add_r64(.Rax, .Rdi),
+            .Add_r64_r64(.Rax, .Rdi),
             .Push_r64(.Rax),
         ]
 
@@ -25,7 +30,7 @@ public func compile(instruction: IL.Instruction) -> [X64.Instruction] {
         return [
             .Pop_r64(.Rdi),
             .Pop_r64(.Rax),
-            .Sub_r64(.Rax, .Rdi),
+            .Sub_r64_r64(.Rax, .Rdi),
             .Push_r64(.Rax),
         ]
 
@@ -33,7 +38,7 @@ public func compile(instruction: IL.Instruction) -> [X64.Instruction] {
         return [
             .Pop_r64(.Rdi),
             .Pop_r64(.Rax),
-            .IMul_r64(.Rax, .Rdi),
+            .IMul_r64_r64(.Rax, .Rdi),
             .Push_r64(.Rax),
         ]
 
@@ -66,7 +71,7 @@ public func compile(instruction: IL.Instruction) -> [X64.Instruction] {
     case .Return:
         return [
             .Pop_r64(.Rax),
-            .Mov_r64(.Rsp, .Rbp),
+            .Mov_r64_r64(.Rsp, .Rbp),
             .Pop_r64(.Rbp),
             .Ret,
         ]
@@ -74,12 +79,22 @@ public func compile(instruction: IL.Instruction) -> [X64.Instruction] {
 }
 
 public func compile(function: IL.Function) -> [X64.Instruction] {
+    var locals: [VariableSymbol: Int32] = [:]
+    var localPos: Int32 = 0
+
+    // Alloca for local variables.
+    for variable in function.localVariables {
+        localPos -= 8 // TODO: size, align
+        locals[variable] = localPos
+    }
+
     let prolog = [X64.Instruction]([
         .Push_r64(.Rbp),
-        .Mov_r64(.Rbp, .Rsp),
+        .Mov_r64_r64(.Rbp, .Rsp),
+        .Sub_r64_imm32(.Rsp, -localPos)
     ])
 
     return function.instructions.reduce(into: prolog) {
-        $0 += compile(instruction: $1)
+        $0 += compile(instruction: $1, locals: locals)
     }
 }

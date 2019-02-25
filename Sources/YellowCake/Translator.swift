@@ -81,7 +81,7 @@ private func translate(declaration: Declaration) -> IL.Function {
         instructions.append(.PushInt(0))
         instructions.append(.Return)
 
-        return IL.Function(name: attr.symbol.name, instructions: instructions)
+        return IL.Function(name: attr.symbol.name, localVariables: attr.scope!.wholeSymbols, instructions: instructions)
     }
 }
 

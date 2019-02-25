@@ -15,10 +15,12 @@ public class IL {
 
     public class Function {
         public let name: String
+        public let localVariables: [VariableSymbol]
         public let instructions: [Instruction]
 
-        public init(name: String, instructions: [Instruction]) {
+        public init(name: String, localVariables: [VariableSymbol], instructions: [Instruction]) {
             self.name = name
+            self.localVariables = localVariables
             self.instructions = instructions
         }
     }

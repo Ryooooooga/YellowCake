@@ -1,21 +1,43 @@
-public class VariableSymbol {
+import Foundation
+
+public class VariableSymbol: Hashable {
     public let name: String
     public let location: Location
+
+    public var hashValue: Int {
+        return ObjectIdentifier(self).hashValue
+    }
 
     public init(name: String, location: Location) {
         self.name = name
         self.location = location
+    }
+
+    public static func == (lhs: VariableSymbol, rhs: VariableSymbol) -> Bool {
+        return lhs === rhs
     }
 }
 
 public class Scope {
     public weak var parent: Scope?
 
+    private var children: [Scope]
     private var symbols: [VariableSymbol]
+
+    public var wholeSymbols: [VariableSymbol] {
+        return self.children.reduce(into: self.symbols) {
+            $0 += $1.wholeSymbols
+        }
+    }
 
     public init(parent: Scope?) {
         self.parent = parent
+        self.children = []
         self.symbols = []
+
+        if let parent = self.parent {
+            parent.children.append(self)
+        }
     }
 
     public func findSymbol(name: String, recursive: Bool) -> VariableSymbol? {
