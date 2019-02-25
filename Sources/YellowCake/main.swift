@@ -10,9 +10,10 @@ let input = ProcessInfo.processInfo.arguments[1]
 let l = Lexer(filename: input, source: input)
 let p = Parser(lexer: l)
 let ast = try p.parse()
-let il = translate(node: ast)
+try semanticAnalyze(node: ast)
 
-let insts = compile(instructions: il)
-let function = JITFunction(binary: try codegen(instructions: insts))
+let function = translate(node: ast)
+let insts = compile(function: function)
+let f = JITFunction(binary: try codegen(instructions: insts))
 
-print(function.execute())
+print(f.execute())

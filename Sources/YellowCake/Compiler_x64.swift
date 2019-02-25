@@ -1,5 +1,8 @@
 public func compile(instruction: IL.Instruction) -> [X64.Instruction] {
     switch instruction {
+    case let .Store(_):
+        assert(false)
+
     case let .PushInt(value):
         return [
             .Push_imm32(UInt32(bitPattern: Int32(value))),
@@ -70,13 +73,13 @@ public func compile(instruction: IL.Instruction) -> [X64.Instruction] {
     }
 }
 
-public func compile(instructions: [IL.Instruction]) -> [X64.Instruction] {
+public func compile(function: IL.Function) -> [X64.Instruction] {
     let prolog = [X64.Instruction]([
         .Push_r64(.Rbp),
         .Mov_r64(.Rbp, .Rsp),
     ])
 
-    return instructions.reduce(into: prolog) {
+    return function.instructions.reduce(into: prolog) {
         $0 += compile(instruction: $1)
     }
 }

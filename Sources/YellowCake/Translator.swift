@@ -31,8 +31,8 @@ public func translate(expression: Expression, instructions: inout [IL.Instructio
 
 public func translate(statement: Statement, instructions: inout [IL.Instruction]) {
     switch statement.kind {
-    case let .Compound(stmts):
-        for stmt in stmts {
+    case let .Compound(attr):
+        for stmt in attr.statements {
             translate(statement: stmt, instructions: &instructions)
         }
 
@@ -59,6 +59,11 @@ public func translate(statement: Statement, instructions: inout [IL.Instruction]
 
         instructions.append(.Return)
 
+    case let .Let(symbol, initializer):
+        translate(expression: initializer, instructions: &instructions)
+
+        instructions.append(.Store(symbol))
+
     case let .Expression(expr):
         translate(expression: expr, instructions: &instructions)
 
@@ -66,13 +71,20 @@ public func translate(statement: Statement, instructions: inout [IL.Instruction]
     }
 }
 
-public func translate(node: Statement) -> [IL.Instruction] {
-    var instructions = [IL.Instruction]()
+private func translate(declaration: Declaration) -> IL.Function {
+    switch declaration.kind {
+    case let .Function(attr):
+        var instructions = [IL.Instruction]()
 
-    translate(statement: node, instructions: &instructions)
+        translate(statement: attr.body, instructions: &instructions)
 
-    instructions.append(.PushInt(0))
-    instructions.append(.Return)
+        instructions.append(.PushInt(0))
+        instructions.append(.Return)
 
-    return instructions
+        return IL.Function(name: attr.symbol.name, instructions: instructions)
+    }
+}
+
+public func translate(node: Declaration) -> IL.Function {
+    return translate(declaration: node)
 }

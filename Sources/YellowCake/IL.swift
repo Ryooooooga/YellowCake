@@ -1,5 +1,6 @@
 public class IL {
     public enum Instruction {
+        case Store(VariableSymbol)
         case PushInt(Int)
         case Drop
         case Add
@@ -12,6 +13,16 @@ public class IL {
         case Return
     }
 
+    public class Function {
+        public let name: String
+        public let instructions: [Instruction]
+
+        public init(name: String, instructions: [Instruction]) {
+            self.name = name
+            self.instructions = instructions
+        }
+    }
+
     public class Label: Hashable {
         public let id: Int
 
@@ -20,7 +31,7 @@ public class IL {
         }
 
         public static func == (lhs: Label, rhs: Label) -> Bool {
-            return lhs.id == rhs.id
+            return lhs === rhs
         }
 
         private static var next: Int = 0

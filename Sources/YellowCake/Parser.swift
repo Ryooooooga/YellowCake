@@ -183,7 +183,7 @@ public class Parser {
         // '}'
         _ = try self.expectToken { $0.isSymbol("}") }
 
-        return Statement(kind: .Compound(stmts), location: token.location)
+        return Statement(kind: .Compound(CompoundStatementAttribute(statements: stmts)), location: token.location)
     }
 
     // IfStmt:
@@ -225,6 +225,29 @@ public class Parser {
         return Statement(kind: .Return(expr), location: token.location)
     }
 
+    // LetStmt:
+    //  'let' Identifier '=' Expr ';'
+    private func parseLetStmt() throws -> Statement {
+        // 'let'
+        let token = try self.expectToken { $0.isSymbol("let") }
+
+        // Identifier
+        let name = try self.expectToken { $0.isIdentifier }
+
+        // '='
+        _ = try self.expectToken { $0.isSymbol("=") }
+
+        // Expr
+        let initializer = try self.parseExpr(level: .Min)
+
+        // ';'
+        _ = try self.expectToken { $0.isSymbol(";") }
+
+        let symbol = VariableSymbol(name: name.identifierName!, location: name.location)
+
+        return Statement(kind: .Let(symbol, initializer), location: token.location)
+    }
+
     // ExprStmt:
     //  Expr ';'
     private func parseExprStmt() throws -> Statement {
@@ -241,6 +264,7 @@ public class Parser {
     //  CompoundStmt
     //  IfStmt
     //  ReturnStmt
+    //  LetStmt
     //  ExprStmt
     private func parseStmt() throws -> Statement {
         let token = try self.stream.peek()
@@ -255,6 +279,9 @@ public class Parser {
         case .Symbol("return"):
             return try self.parseReturnStmt()
 
+        case .Symbol("let"):
+            return try self.parseLetStmt()
+
         default:
             return try self.parseExprStmt()
         }
@@ -262,13 +289,16 @@ public class Parser {
 
     // Program:
     //  Stmt EOF
-    public func parse() throws -> Statement {
+    public func parse() throws -> Declaration {
         // Stmt
-        let stmt = try self.parseStmt()
+        let body = try self.parseStmt()
 
         // EOF
-        _ = try self.expectToken { $0.isEOF }
+        let token = try self.expectToken { $0.isEOF }
 
-        return stmt
+        let symbol = VariableSymbol(name: "anonymous", location: token.location)
+        let attr = FunctionAttribute(symbol: symbol, body: body)
+
+        return Declaration(kind: .Function(attr), location: token.location)
     }
 }

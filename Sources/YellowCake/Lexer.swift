@@ -28,10 +28,12 @@ public class Lexer {
     private static let keywords: [String] = [
         "if", "else",
         "return",
+        "let",
     ]
 
     private static let punctuators: [String] = [
         "+", "-","*","/",
+        "=",
         "(",")", "{", "}",
         ";",
     ]

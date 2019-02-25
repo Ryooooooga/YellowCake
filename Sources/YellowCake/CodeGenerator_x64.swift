@@ -22,9 +22,6 @@ public func codegen(instructions: [X64.Instruction]) throws -> [UInt8] {
     class LabelContext {
         public var pos: Int? = nil
         public var refs: [Int] = []
-
-        init() {
-        }
     }
 
     var labelTable = [IL.Label: LabelContext]()

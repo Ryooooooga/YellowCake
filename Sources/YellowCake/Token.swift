@@ -23,9 +23,23 @@ public class Token: CustomStringConvertible {
         return false
     }
 
+    public var isIdentifier: Bool {
+        if case .Identifier(_) = self.kind {
+            return true
+        }
+        return false
+    }
+
     public var integerLiteralValue: Int? {
         if case let .IntegerLiteral(value) = self.kind {
             return value
+        }
+        return nil
+    }
+
+    public var identifierName: String? {
+        if case let .Identifier(name) = self.kind {
+            return name
         }
         return nil
     }
