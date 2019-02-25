@@ -167,6 +167,25 @@ public class Parser {
         return try parseInfixExpr(left: expr, level: level)
     }
 
+    // CompoundStmt:
+    //  '{' {Stmt} '}'
+    private func parseCompoundStmt() throws -> Statement {
+        // '{'
+        let token = try self.expectToken { $0.isSymbol("{") }
+
+        // {Stmt}
+        var stmts = [Statement]()
+
+        while !(try self.stream.peek()).isSymbol("}") {
+            stmts.append(try self.parseStmt())
+        }
+
+        // '}'
+        _ = try self.expectToken { $0.isSymbol("}") }
+
+        return Statement(kind: .Compound(stmts), location: token.location)
+    }
+
     // ReturnStmt:
     //  'return' expr ';'
     private func parseReturnStmt() throws -> Statement {
@@ -183,11 +202,15 @@ public class Parser {
     }
 
     // Stmt:
+    //  CompoundStmt
     //  ReturnStmt
     private func parseStmt() throws -> Statement {
         let token = try self.stream.peek()
 
         switch token.kind {
+        case .Symbol("{"):
+            return try self.parseCompoundStmt()
+
         case .Symbol("return"):
             return try self.parseReturnStmt()
 

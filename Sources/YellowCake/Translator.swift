@@ -31,6 +31,11 @@ public func translate(expression: Expression, instructions: inout [IL.Instructio
 
 public func translate(statement: Statement, instructions: inout [IL.Instruction]) {
     switch statement.kind {
+    case let .Compound(stmts):
+        for stmt in stmts {
+            translate(statement: stmt, instructions: &instructions)
+        }
+
     case let .Return(expr):
         translate(expression: expr, instructions: &instructions)
 

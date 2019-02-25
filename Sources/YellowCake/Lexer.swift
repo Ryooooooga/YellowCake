@@ -31,7 +31,7 @@ public class Lexer {
 
     private static let punctuators: [String] = [
         "+", "-","*","/",
-        "(",")",
+        "(",")", "{", "}",
         ";",
     ]
 
