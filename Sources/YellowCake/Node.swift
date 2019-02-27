@@ -181,6 +181,8 @@ public class Expression: CustomStringConvertible {
     public let kind: Kind
     public let location: Location
 
+    internal var type: Type?
+
     public var description: String {
         return "(\(self.kind) at: \(self.location))"
     }

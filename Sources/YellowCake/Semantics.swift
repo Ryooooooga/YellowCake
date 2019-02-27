@@ -3,12 +3,13 @@ import Foundation
 public enum SemanticError: Error {
     case MultipleDeclaration(VariableSymbol)
     case UndeclaredIdentifier(String, Location)
+    case InvalidType(Location)
 }
 
 private func semanticAnalyze(expression: Expression, scope: Scope) throws {
     switch expression.kind {
         case .Integer(_):
-            break
+            expression.type = Type.int64
 
         case let .Identifier(attr):
             guard let symbol = scope.findSymbol(name: attr.name, recursive: true) else {
@@ -16,22 +17,47 @@ private func semanticAnalyze(expression: Expression, scope: Scope) throws {
             }
 
             attr.symbol = symbol
+            expression.type = attr.symbol!.type!
 
         case let .Add(left, right):
             try semanticAnalyze(expression: left, scope: scope)
             try semanticAnalyze(expression: right, scope: scope)
 
+            guard left.type?.isInt64 ?? false && right.type?.isInt64 ?? false else {
+                throw SemanticError.InvalidType(expression.location)
+            }
+
+            expression.type = left.type!
+
         case let .Subtract(left, right):
             try semanticAnalyze(expression: left, scope: scope)
             try semanticAnalyze(expression: right, scope: scope)
+
+            guard left.type?.isInt64 ?? false && right.type?.isInt64 ?? false else {
+                throw SemanticError.InvalidType(expression.location)
+            }
+
+            expression.type = left.type!
 
         case let .Multiply(left, right):
             try semanticAnalyze(expression: left, scope: scope)
             try semanticAnalyze(expression: right, scope: scope)
 
+            guard left.type?.isInt64 ?? false && right.type?.isInt64 ?? false else {
+                throw SemanticError.InvalidType(expression.location)
+            }
+
+            expression.type = left.type!
+
         case let .Divide(left, right):
             try semanticAnalyze(expression: left, scope: scope)
             try semanticAnalyze(expression: right, scope: scope)
+
+            guard left.type?.isInt64 ?? false && right.type?.isInt64 ?? false else {
+                throw SemanticError.InvalidType(expression.location)
+            }
+
+            expression.type = left.type!
     }
 }
 
@@ -52,8 +78,16 @@ private func semanticAnalyze(statement: Statement, scope: Scope) throws {
             try semanticAnalyze(statement: else_, scope: scope)
         }
 
+        guard cond.type?.isInt64 ?? false else {
+            throw SemanticError.InvalidType(cond.location)
+        }
+
     case let .Return(expr):
         try semanticAnalyze(expression: expr, scope: scope)
+
+        guard expr.type?.isInt64 ?? false else {
+            throw SemanticError.InvalidType(expr.location)
+        }
 
     case let .Let(symbol, initializer):
         try semanticAnalyze(expression: initializer, scope: scope)
@@ -63,6 +97,10 @@ private func semanticAnalyze(statement: Statement, scope: Scope) throws {
         }
 
         symbol.type = Type.int64
+
+        guard initializer.type?.isInt64 ?? false else {
+            throw SemanticError.InvalidType(initializer.location)
+        }
 
     case let .Expression(expr):
         try semanticAnalyze(expression: expr, scope: scope)
