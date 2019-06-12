@@ -1,3 +1,3 @@
 # YellowCake
 
-A description of this package.
+Mini-Swift compiler
